@@ -2,13 +2,15 @@ import numpy as np
 import gym
 import random
 
+from q_table_navigator import QTableNavigator
+
 # env.nS is a number of states in the environment.
 # env.nA is a number of actions in the environment.
 
 # Environment init
 # env = gym.make("FrozenLake-v1", render_mode="human")
-# env = gym.make("FrozenLake-v1", render_mode="ansi", is_slippery=False)
-env = gym.make("Taxi-v3", render_mode="ansi")
+env = gym.make("FrozenLake-v1", render_mode="ansi", is_slippery=False)
+# env = gym.make("Taxi-v3", render_mode="ansi")
 
 
 # Parameter init
@@ -67,7 +69,7 @@ for episode in range(num_episodes):
     ) * np.exp(-exploration_decay_rate * episode)
     reward_all_episodes.append(rewards_current_episode)
 
-
+# Statistics
 rewards_per_thousand_episodes = np.split(
     np.array(reward_all_episodes), num_episodes / 1000
 )
@@ -79,5 +81,12 @@ for r in rewards_per_thousand_episodes:
 
 # Print Updated Q-Table
 print("\n\n*** Q-Table ***\n")
-print("LEFT DOWN RIGHT UP\n")
+print("LEFT DOWN RIGHT UP")
 print(q_table)
+
+
+table_nav = QTableNavigator(q_table, 4)
+path = table_nav.get_path(x=0, y=0, x_end=3, y_end=3, path_array=[])
+
+print("\n\nBEST PATH")
+print(path)
