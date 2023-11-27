@@ -2,12 +2,12 @@ import numpy as np
 import gym
 import random
 
-#env.nS is a number of states in the environment. 
-#env.nA is a number of actions in the environment.
+# env.nS is a number of states in the environment.
+# env.nA is a number of actions in the environment.
 
 # Environment init
-#env = gym.make("FrozenLake-v1", render_mode="human")
-#env = gym.make("FrozenLake-v1", render_mode="ansi", is_slippery=False)
+# env = gym.make("FrozenLake-v1", render_mode="human")
+# env = gym.make("FrozenLake-v1", render_mode="ansi", is_slippery=False)
 env = gym.make("Taxi-v3", render_mode="ansi")
 
 
@@ -79,4 +79,5 @@ for r in rewards_per_thousand_episodes:
 
 # Print Updated Q-Table
 print("\n\n*** Q-Table ***\n")
+print("LEFT DOWN RIGHT UP\n")
 print(q_table)

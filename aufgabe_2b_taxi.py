@@ -75,5 +75,5 @@ for r in rewards_per_thousand_episodes:
 
 # Print Updated Q-Table
 print("\n\n*** Q-Table ***\n")
-print("LEFT DOWN UP RIGHT\n")
+print("LEFT DOWN RIGHT UP\n")
 print(q_table)
