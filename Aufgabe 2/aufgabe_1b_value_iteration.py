@@ -1,21 +1,25 @@
 import gymnasium as gym
 import numpy as np
 
-# env.observation_space.n is a number of states in the environment. 
+# env.observation_space.n is a number of states in the environment.
 # env.action_space.n is a number of actions in the environment.
 
 # Environment init
-#render_mode = "human"
+env_type = 0
+
+# render_mode = "human"
 render_mode = "ansi"
-env = gym.make(
-    "FrozenLake-v1", render_mode=render_mode, desc=None, map_name="4x4", is_slippery=False
-)
-#env = gym.make("Taxi-v3", render_mode="human")
+if env_type == 0:
+    env = gym.make(
+        "FrozenLake-v1", render_mode=render_mode, map_name="4x4", is_slippery=True
+    )
+elif env_type == 1:
+    env = gym.make("Taxi-v3", render_mode=render_mode)
 
 # Parameter init
-num_episodes = 10000  # Total number of episodes to play during training
+num_episodes = 100  # Total number of episodes to play during training
 max_steps_per_episode = 100
-discount_factor = 0.99
+discount_factor = 0.95  # from 0.95 to 0.99 for taxi game
 
 
 def one_step_lookahead(state, V):
@@ -120,7 +124,10 @@ env.render()
 opt_V, opt_Policy = value_iteration()
 print("Converged")
 print("Optimal Value function: ")
-print(opt_V.reshape((4, 4)))
+
+if env_type == 0:
+    print(opt_V.reshape((env.action_space.n, env.action_space.n)))
+
 print("Final Policy: ")
-print(opt_Policy)
-#print(" ".join([action_mapping[int(action)] for action in opt_Policy]))
+print(opt_Policy.reshape(4,4))
+# print(" ".join([action_mapping[int(action)] for action in opt_Policy]))

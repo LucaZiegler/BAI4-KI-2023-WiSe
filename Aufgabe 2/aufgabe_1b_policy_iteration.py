@@ -5,18 +5,22 @@ import numpy as np
 # env.action_space.n is a number of actions in the environment.
 
 # Environment init
-#render_mode = "human"
+# render_mode = "human"
 render_mode = "ansi"
 env = gym.make(
-    "FrozenLake-v1", render_mode=render_mode, desc=None, map_name="4x4", is_slippery=False
+    "FrozenLake-v1",
+    render_mode=render_mode,
+    desc=None,
+    map_name="4x4",
+    is_slippery=False,
 )
 # env = gym.make("Taxi-v3", render_mode=render_mode)
 
 
 # Parameter init
-num_episodes = 10000  # Total number of episodes to play during training
-max_steps_per_episode = 100
-discount_factor = 0.99
+num_episodes = 100  # Total number of episodes to play during training
+max_steps_per_episode = 1000
+discount_factor = 0.5
 
 
 def compute_value_function(policy):
@@ -28,7 +32,8 @@ def compute_value_function(policy):
             action = policy[state]
             value_table[state] = sum(
                 [
-                    trans_prob * (reward_prob + discount_factor * updated_value_table[next_state])
+                    trans_prob
+                    * (reward_prob + discount_factor * updated_value_table[next_state])
                     for trans_prob, next_state, reward_prob, _ in env.P[state][action]
                 ]
             )
@@ -58,6 +63,7 @@ def policy_iteration():
     for i in range(num_episodes):
         new_value_function = compute_value_function(random_policy)
         new_policy = extract_policy(new_value_function)
+        # Check if reached convergence
         if np.all(random_policy == new_policy):
             print("Policy-Iteration converged at step %d." % (i + 1))
             break
@@ -68,5 +74,6 @@ def policy_iteration():
 
 opt_Policy = policy_iteration()
 print("Converged")
+print("0 LEFT, 1 DOWN, 2 RIGHT, 3 UP")
 print("Final Policy: ")
-print(opt_Policy)
+print(opt_Policy.reshape(4,4))
