@@ -5,10 +5,12 @@ import numpy as np
 # env.action_space.n is a number of actions in the environment.
 
 # Environment init
+#render_mode = "human"
+render_mode = "ansi"
 env = gym.make(
-    "FrozenLake-v1", render_mode="human", desc=None, map_name="4x4", is_slippery=False
+    "FrozenLake-v1", render_mode=render_mode, desc=None, map_name="4x4", is_slippery=False
 )
-# env = gym.make("Taxi-v3", render_mode="human")
+# env = gym.make("Taxi-v3", render_mode=render_mode)
 
 
 # Parameter init
