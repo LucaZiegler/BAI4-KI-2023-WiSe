@@ -12,6 +12,7 @@ def visualize_error_surface(current_w1, current_w2, current_loss):
     X, Y = np.meshgrid(x, y)
     Z = loss_function(X, Y)
 
+
     fig = plt.figure(figsize=(10, 7))
     ax = plt.axes(projection='3d')
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='jet', edgecolor='none', alpha=0.7)
