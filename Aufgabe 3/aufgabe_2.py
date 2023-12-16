@@ -50,4 +50,4 @@ y_test = df_test["klasse"]
 logreg = LogisticRegression()
 logreg.fit(X_train, y_train)
 
-print(f"Accuracy - : {logreg.score(X_train,y_train)}")
+print(f"Accuracy - : {logreg.score(X_train,y_train)}") # Percentage that are true
