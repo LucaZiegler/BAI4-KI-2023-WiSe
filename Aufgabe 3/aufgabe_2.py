@@ -5,6 +5,8 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_score, recall_score
+
 
 df = pd.read_csv("Aufgabe 3\Praktikum3_Datensatz.csv")
 
@@ -50,4 +52,19 @@ y_test = df_test["klasse"]
 logreg = LogisticRegression()
 logreg.fit(X_train, y_train)
 
-print(f"Accuracy - : {logreg.score(X_train,y_train)}") # Percentage that are true
+# Schritt 5: Evaluation
+# Vorhersagen auf dem Testdatensatz
+y_pred = logreg.predict(X_test)
+
+# Berechne Metriken
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+#score = logreg.score(X_train,y_train)
+
+# Ausgabe der Metriken
+print(f"Accuracy: {accuracy}")
+print(f"Precision: {precision}")
+print(f"Recall: {recall}")
+
+#print(f"Accuracy - : {score}") # Percentage that are true
