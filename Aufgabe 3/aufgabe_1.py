@@ -1,9 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 # Definition der Fehlerfunktion
 def loss_function(w1, w2, x1=1.0, x2=1.5, y_tar=2.0):
     return 0.5 * (np.sin(w1 * x1) + np.cos(w2 * x2) + w2 - y_tar)**2
+
+
 
 # Visualisierung der Fehlerfunktion
 def visualize_error_surface(current_w1, current_w2, current_loss):
@@ -11,7 +14,6 @@ def visualize_error_surface(current_w1, current_w2, current_loss):
     y = np.linspace(-10, 10, 100)
     X, Y = np.meshgrid(x, y)
     Z = loss_function(X, Y)
-
 
     fig = plt.figure(figsize=(10, 7))
     ax = plt.axes(projection='3d')
