@@ -26,7 +26,7 @@ def visualize_error_surface(current_w1, current_w2, current_loss):
     plt.show()
 
 # Beispiel: Initialisierung mit zufälligen Werten
-initial_w1 = np.random.uniform(-10, 10)
+initial_w1 = np.random.uniform(-10, 10) 
 initial_w2 = np.random.uniform(-10, 10)
 initial_loss = loss_function(initial_w1, initial_w2)
 
