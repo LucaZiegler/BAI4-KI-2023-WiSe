@@ -1,5 +1,20 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import sympy as sp
+
+def diff():
+    w1, w2 = sp.symbols('w1 w2')
+    x1, x2, y_tar = 1.0, 1.5, 2.0
+
+    # Definiere die Fehlerfunktion
+    error = 0.5 * (sp.sin(w1 * x1) + sp.cos(w2 * x2) + w2 - y_tar)**2
+
+    # Berechne die partiellen Ableitungen
+    derivative_w1 = sp.diff(error, w1)
+    derivative_w2 = sp.diff(error, w2)
+
+    print("Partial derivative with respect to w1:", derivative_w1)
+    print("Partial derivative with respect to w2:", derivative_w2)
 
 
 # Definition der Fehlerfunktion
@@ -28,10 +43,12 @@ def visualize_error_surface(current_w1, current_w2, current_loss):
 
     plt.show()
 
+diff()
+
 # Beispiel: Initialisierung mit zufälligen Werten
 initial_w1 = np.random.uniform(-10, 10) 
 initial_w2 = np.random.uniform(-10, 10)
-initial_loss = loss_function(initial_w1, initial_w2)
+#initial_loss = loss_function(initial_w1, initial_w2)
 
 # Visualisierung der Fehlerfunktion mit initialen Gewichten
-visualize_error_surface(initial_w1, initial_w2, initial_loss)
+#visualize_error_surface(initial_w1, initial_w2, initial_loss)
