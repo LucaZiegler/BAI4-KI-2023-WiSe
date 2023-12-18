@@ -22,7 +22,6 @@ def loss_function(w1, w2, x1=1.0, x2=1.5, y_tar=2.0):
     return 0.5 * (np.sin(w1 * x1) + np.cos(w2 * x2) + w2 - y_tar)**2
 
 
-
 # Visualisierung der Fehlerfunktion
 def visualize_error_surface(current_w1, current_w2, current_loss):
     x = np.linspace(-10, 10, 100)
@@ -43,11 +42,40 @@ def visualize_error_surface(current_w1, current_w2, current_loss):
 
     plt.show()
 
-diff()
+
+if __name__ == "__main__":
+    #I Versuch
+    w1 = -6.5
+    w2 = -9.5
+
+    #II Versuch
+    #w1 = 0
+    #w2 = -0.5
+
+    w1_start = w1
+    w2_start = w2
+    alpha = 0.05
+
+    visualize_error_surface(w1_start, w2_start,loss_function(w1_start,w2_start))
+
+    w1, w2 = sp.symbols('w1 w2')
+    f = loss_function(w1,w2)
+    #Näherung des Minimums
+    for x in range(100):
+        derivative_fw1 = f.diff(w1)
+        derivative_fw2 = f.diff(w2)
+        w1_start = w1_start - alpha*derivative_fw1
+        w2_start = w2_start - alpha*derivative_fw2
+
+    print("w1 Start (Vorhersage): " + str(w1_start) + "; w1 Ende: " + str(round(w1, 1)))
+    print("w2 Start (Vorhersage): " + str(w2_start) + "; w2 Ende: " + str(round(w2, 1))+ "\r\n")
+
+    visualize_error_surface(w1, w2,loss_function(w1, w2))
+    print( "x: " + str(round(w1, 1)) + " y: " + str(round(w2, 1)) + " z: " + str(round(loss_function(w1, w2), 1)) + " (Fehlerwert) ")
 
 # Beispiel: Initialisierung mit zufälligen Werten
-initial_w1 = np.random.uniform(-10, 10) 
-initial_w2 = np.random.uniform(-10, 10)
+#initial_w1 = np.random.uniform(-10, 10) 
+#initial_w2 = np.random.uniform(-10, 10)
 #initial_loss = loss_function(initial_w1, initial_w2)
 
 # Visualisierung der Fehlerfunktion mit initialen Gewichten
