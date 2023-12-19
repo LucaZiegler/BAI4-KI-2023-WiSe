@@ -79,13 +79,7 @@ if __name__ == "__main__":
         w2_start = w2_start - alpha * derivative_fw2
 
     print("w1 Start (Vorhersage): " + str(w1_start) + "; w1 Ende: " + str(round(w1, 1)))
-    print(
-        "w2 Start (Vorhersage): "
-        + str(w2_start)
-        + "; w2 Ende: "
-        + str(round(w2, 1))
-        + "\r\n"
-    )
+    print(f"w2 Start (Vorhersage): {str(w2_start)}; w2 Ende: {str(round(w2, 1))}\r\n")
 
     visualize_error_surface(w1, w2, loss_function(w1, w2))
     print(
