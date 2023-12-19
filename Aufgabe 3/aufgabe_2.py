@@ -22,17 +22,17 @@ for column_name in df.columns:
 # https://stackoverflow.com/a/49271663/4503373
 
 
-# Schritt 2: Train/Test Split
+# Train/Test Split
 train_size = 0.8
 df_train, df_test = train_test_split(df, test_size=1 - train_size, random_state=42)
 
 
-# Schritt 3: Preprocessing
 # Definiere Spalten für kontinuierliche und diskrete Variablen
 continuous_cols = ["grundstuecksgroesse", "hausgroesse", "kriminalitaetsindex"]
 discrete_cols = ["stadt", "baujahr"]
 
 # Spalten-Transformer für die Preprocessing-Schritte
+# Wichtig für konsistente Daten
 preprocessor = ColumnTransformer(
     transformers=[
         ("num", StandardScaler(), continuous_cols),
@@ -48,11 +48,11 @@ y_train = df_train["klasse"]
 X_test = preprocessor.transform(df_test.drop("klasse", axis=1))
 y_test = df_test["klasse"]
 
-# Schritt 4: Training der logistischen Regression
+# Training der logistischen Regression
 logreg = LogisticRegression()
 logreg.fit(X_train, y_train)
 
-# Schritt 5: Evaluation
+# Evaluation
 # Vorhersagen auf dem Testdatensatz
 y_pred = logreg.predict(X_test)
 
@@ -60,11 +60,13 @@ y_pred = logreg.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 precision = precision_score(y_test, y_pred)
 recall = recall_score(y_test, y_pred)
-#score = logreg.score(X_train,y_train)
+# score = logreg.score(X_train,y_train)
 
 # Ausgabe der Metriken
-print(f"Accuracy: {accuracy}")
-print(f"Precision: {precision}")
-print(f"Recall: {recall}")
+print(f"Accuracy: {accuracy}")   # Genauigkeit des Anteil der korrekt klassifierten Daten
+print(f"Precision: {precision}") # Genauigkeit der positiven Vorhersagen
+print(f"Recall: {recall}")       # Sensitivität oder Trefferquote
 
-#print(f"Accuracy - : {score}") # Percentage that are true
+# print(f"Accuracy - : {score}") # Percentage that are true
+
+# Mit Penality ist L1/L2 Regularisierung einstellen
