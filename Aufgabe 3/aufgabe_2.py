@@ -30,6 +30,9 @@ df_train, df_test = train_test_split(df, test_size=1 - train_size, random_state=
 # Definiere Spalten für kontinuierliche und diskrete Variablen
 continuous_cols = ["grundstuecksgroesse", "hausgroesse", "kriminalitaetsindex"]
 discrete_cols = ["stadt", "baujahr"]
+# Nominal: Stadt
+# Intervall: Baujahr
+# Verhältnisskala: Grundstücksgrösse, Hausgrösse, Kriminalitätsindex
 
 # Spalten-Transformer für die Preprocessing-Schritte
 # Wichtig für konsistente Daten
@@ -63,9 +66,9 @@ recall = recall_score(y_test, y_pred)
 # score = logreg.score(X_train,y_train)
 
 # Ausgabe der Metriken
-print(f"Accuracy: {accuracy}")   # Genauigkeit des Anteil der korrekt klassifierten Daten
-print(f"Precision: {precision}") # Genauigkeit der positiven Vorhersagen
-print(f"Recall: {recall}")       # Sensitivität oder Trefferquote
+print(f"Accuracy: {accuracy}")  # Genauigkeit des Anteil der korrekt klassifierten Daten
+print(f"Precision: {precision}")  # Genauigkeit der positiven Vorhersagen
+print(f"Recall: {recall}")  # Sensitivität oder Trefferquote
 
 # print(f"Accuracy - : {score}") # Percentage that are true
 
