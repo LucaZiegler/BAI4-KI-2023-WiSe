@@ -1,136 +1,208 @@
-import csv
-import numpy as np
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
+from sklearn.impute import SimpleImputer
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+import pandas as pd
+from torch import nn
+from torch.utils.data import TensorDataset, DataLoader
+import matplotlib.pyplot as plt
 
-# Schritt 1: Einlesen des Datensatzes
-csv_file = "Aufgabe 4/Praktikum4_Datensatz.csv"
-data = []
+from ColumnNames import ColumnNames
+from Metrics import calculateMetrics
 
-with open(csv_file, "r") as file:
-    csv_reader = csv.reader(file)
-    header = next(csv_reader)  # Header-Zeile überspringen
-    for row in csv_reader:
-        data.append(row)
+# define size of train, test and validation ratios
+train_ratio = 0.8
+validation_ratio = 0.1
+test_ratio = 0.1
 
-# Schritt 2: Train/Val/Test Split
-total_samples = len(data)
-train_size = int(0.8 * total_samples)
-val_size = int(0.1 * total_samples)
-test_size = total_samples - train_size - val_size
+input_size = 9
+hidden_size = 200
+output_size = 1
 
-train_data = data[:train_size]
-val_data = data[train_size : train_size + val_size]
-test_data = data[train_size + val_size :]
-
-# Schritt 3: Preprocessing
-X_train = np.array([row[:-1] for row in train_data], dtype=float)
-y_train = np.array([row[-1] for row in train_data])
-
-X_val = np.array([row[:-1] for row in val_data], dtype=float)
-y_val = np.array([row[-1] for row in val_data])
-
-X_test = np.array([row[:-1] for row in test_data], dtype=float)
-y_test = np.array([row[-1] for row in test_data])
-
-# Standardisierung der kontinuierlichen Features
-scaler = StandardScaler()
-X_train[:, [0, 2, 4]] = scaler.fit_transform(X_train[:, [0, 2, 4]])
-X_val[:, [0, 2, 4]] = scaler.transform(X_val[:, [0, 2, 4]])
-X_test[:, [0, 2, 4]] = scaler.transform(X_test[:, [0, 2, 4]])
-
-# One-Hot-Encoding der kategorialen Features
-encoder = OneHotEncoder(sparse=False, handle_unknown="ignore")
-X_train_categorical = encoder.fit_transform(X_train[:, [1, 3]])
-X_val_categorical = encoder.transform(X_val[:, [1, 3]])
-X_test_categorical = encoder.transform(X_test[:, [1, 3]])
-
-# Zusammenführen der Features
-X_train = np.hstack((X_train[:, [0, 2, 4]], X_train_categorical))
-X_val = np.hstack((X_val[:, [0, 2, 4]], X_val_categorical))
-X_test = np.hstack((X_test[:, [0, 2, 4]], X_test_categorical))
-
-# Konvertieren zu PyTorch-Tensoren
-X_train = torch.Tensor(X_train)
-y_train = torch.Tensor(y_train).unsqueeze(1)  # Unsere Ausgabe ist eine Spalte
-X_val = torch.Tensor(X_val)
-y_val = torch.Tensor(y_val).unsqueeze(1)
-X_test = torch.Tensor(X_test)
-y_test = torch.Tensor(y_test).unsqueeze(1)
+num_epochs = 200
+learning_rate = 0.001
 
 
-# Schritt 4: Erstellung und Training des neuronalen Netzwerks
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.fc1 = nn.Linear(in_features=X_train.shape[1], out_features=64)
-        self.fc2 = nn.Linear(64, 32)
-        self.fc3 = nn.Linear(32, 1)
+def check_for_early_stop(_epoch_loss_val_plot) -> bool:
+    if len(_epoch_loss_val_plot) <= 5:
+        return False
 
-    def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        x = torch.sigmoid(self.fc3(x))
-        return x
+    if _epoch_loss_val_plot[-5] < _epoch_loss_val_plot[-1]:
+        return True
+
+    return False
 
 
-model = Net()
+def visualize(_epoch_loss_train_plot, _epoch_loss_val_plot):
+    plt.rcParams["figure.figsize"] = [7.50, 3.50]
+    plt.rcParams["figure.autolayout"] = True
+    plt.title("Loss")
+    plt.plot(_epoch_loss_train_plot, color='red', label='train')
+    plt.plot(_epoch_loss_val_plot, color='blue', label='val')
+    plt.legend()
+    plt.show()
 
-# Optimierer und Loss-Funktion
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-criterion = nn.BCELoss()  # Binary Cross-Entropy Loss für binäre Klassifikation
 
-# Training des Modells
-num_epochs = 10
-batch_size = 64
+if __name__ == '__main__':
+    X = pd.read_csv('../Praktikum4_Datensatz.csv')
 
-train_dataset = TensorDataset(X_train, y_train)
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    x, y = (
+        X[[
+            ColumnNames.Grundstuecksgroesse.value,
+            ColumnNames.Stadt.value,
+            ColumnNames.Hausgroesse.value,
+            ColumnNames.Kriminalitaetsindex.value,
+            ColumnNames.Baujahr.value]
+        ], X[ColumnNames.Klasse.value]
+    )
 
-for epoch in range(num_epochs):
-    model.train()
-    for batch_X, batch_y in train_loader:
-        optimizer.zero_grad()
-        output = model(batch_X)
-        loss = criterion(output, batch_y)
-        loss.backward()
-        optimizer.step()
+    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=1 - train_ratio)
 
-# Evaluation auf Trainings- und Validierungsdaten
-model.eval()
-with torch.no_grad():
-    train_preds = (model(X_train) > 0.5).float()
-    val_preds = (model(X_val) > 0.5).float()
+    X_val, X_test, y_val, y_test = train_test_split(X_test, y_test,
+                                                    test_size=test_ratio / (test_ratio + validation_ratio))
 
-train_accuracy = accuracy_score(y_train, train_preds)
-val_accuracy = accuracy_score(y_val, val_preds)
-train_precision = precision_score(y_train, train_preds)
-val_precision = precision_score(y_val, val_preds)
-train_recall = recall_score(y_train, train_preds)
-val_recall = recall_score(y_val, val_preds)
+    # https://scikit-learn.org/stable/auto_examples/compose/plot_column_transformer_mixed_types.html
+    numeric_features = [ColumnNames.Grundstuecksgroesse.value, ColumnNames.Hausgroesse.value, ColumnNames.Baujahr.value]
+    numeric_transformer = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler())
+        ]
+    )
 
-print(f"Train Accuracy: {train_accuracy:.4f}, Validation Accuracy: {val_accuracy:.4f}")
-print(
-    f"Train Precision: {train_precision:.4f}, Validation Precision: {val_precision:.4f}"
-)
-print(f"Train Recall: {train_recall:.4f}, Validation Recall: {val_recall:.4f}")
+    categorical_features = [ColumnNames.Stadt.value, ColumnNames.Kriminalitaetsindex.value]
+    categorical_transformer = Pipeline(
+        steps=[
+            ("encoder", OneHotEncoder())
+        ]
+    )
 
-# Du kannst nun Schritt 4 wiederholen, indem du verschiedene Hyperparameter und Architekturen ausprobierst,
-# um die Leistung des Modells zu verbessern. Wenn du mit dem Modell zufrieden bist, bewerte es auf dem Testdatensatz.
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("num", numeric_transformer, numeric_features),
+            ("cat", categorical_transformer, categorical_features),
+        ]
+    )
 
-# Schließlich bewerte das beste Modell auf dem Testdatensatz
-model.eval()
-with torch.no_grad():
-    test_preds = (model(X_test) > 0.5).float()
+    X_train_transformed = preprocessor.fit_transform(X_train, y_train)
+    X_test_transformed = preprocessor.fit_transform(X_test, y_test)
+    X_val_transformed = preprocessor.fit_transform(X_val, y_val)
 
-test_accuracy = accuracy_score(y_test, test_preds)
-test_precision = precision_score(y_test, test_preds)
-test_recall = recall_score(y_test, test_preds)
+    one_hot_encoder = OneHotEncoder()
+    one_hot_encoder.fit(y_train.values.reshape(-1, 1))
+    y_train_transformed = one_hot_encoder.transform(y_train.values.reshape(-1, 1)).toarray()[:, 1]
 
-print(f"Test Accuracy: {test_accuracy:.4f}")
-print(f"Test Precision: {test_precision:.4f}")
-print(f"Test Recall: {test_recall:.4f}")
+    one_hot_encoder.fit(y_test.values.reshape(-1, 1))
+    y_test_transformed = one_hot_encoder.transform(y_test.values.reshape(-1, 1)).toarray()[:, 1]
+
+    one_hot_encoder.fit(y_val.values.reshape(-1, 1))
+    y_val_transformed = one_hot_encoder.transform(y_val.values.reshape(-1, 1)).toarray()[:, 1]
+
+    # Überführen in Tensor Datensätze
+    tensor_X_train = torch.tensor(X_train_transformed, dtype=torch.float32)
+    tensor_y_train = torch.tensor(y_train_transformed, dtype=torch.float32)
+
+    tensor_X_test = torch.tensor(X_test_transformed, dtype=torch.float32)
+    tensor_y_test = torch.tensor(y_test_transformed, dtype=torch.float32)
+
+    tensor_X_val = torch.tensor(X_val_transformed, dtype=torch.float32)
+    tensor_y_val = torch.tensor(y_val_transformed, dtype=torch.float32)
+
+    train_dataset = TensorDataset(tensor_X_train, tensor_y_train)
+    test_dataset = TensorDataset(tensor_X_test, tensor_y_test)
+    val_dataset = TensorDataset(tensor_X_val, tensor_y_val)
+
+    train_dataloader = DataLoader(train_dataset, batch_size=200, shuffle=True)
+    test_dataloader = DataLoader(test_dataset, batch_size=50, shuffle=False)
+    val_dataloader = DataLoader(val_dataset, batch_size=50, shuffle=False)
+
+    model = nn.Sequential(
+        nn.Linear(input_size, hidden_size),
+        # nn.Tanh(),
+        # nn.Linear(hidden_size, hidden_size),
+        # nn.Tanh(),
+        nn.Tanh(),
+        nn.BatchNorm1d(hidden_size),
+        nn.Linear(hidden_size, 30),
+        nn.Tanh(),
+        nn.BatchNorm1d(30),
+        nn.Linear(30, 15),
+        nn.Tanh(),
+        nn.BatchNorm1d(15),
+        nn.Linear(15, 5),
+        nn.Tanh(),
+        nn.BatchNorm1d(5),
+        nn.Linear(5, output_size),
+        #nn.LazyLinear(output_size),
+        nn.Sigmoid()
+    )
+
+    loss_function = nn.BCELoss()
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=learning_rate)
+
+    epoch_loss_train_plot = []
+    epoch_loss_val_plot = []
+
+    for n in range(num_epochs):
+        epoch_loss_train = 0
+        model.train()
+        epoch_train_pred = []
+        epoch_train_data = []
+        epoch_val_data = []
+        epoch_val_pred = []
+
+        for X, y in train_dataloader:
+            y_pred = model(X)
+            epoch_train_data.append(y)
+            epoch_train_pred.append(y_pred)
+            loss = loss_function(torch.squeeze(y_pred), y)  # Soll-Ist-Wert Vergleich mit Fehlerfunktion
+            epoch_loss_train += loss.item()
+            optimizer.zero_grad()  # Gradient ggf. vom vorherigen Durchlauf auf 0 setzen
+            loss.backward()  # Backpropagation
+            optimizer.step()  # Gradientenschritt
+
+        epoch_loss_train_plot.append(epoch_loss_train/len(train_dataset))
+
+        epoch_loss_val = 0
+        model.eval()
+        with torch.no_grad():
+            for X, y in val_dataloader:
+                y_pred = model(X)
+                epoch_val_data.append(y)
+                epoch_val_pred.append(y_pred)
+                loss = loss_function(torch.squeeze(y_pred), y)
+                epoch_loss_val += loss.item()
+
+        epoch_loss_val_plot.append(epoch_loss_val / len(val_dataset))
+
+        if check_for_early_stop(epoch_loss_val_plot):
+            break
+
+    visualize(epoch_loss_train_plot, epoch_loss_val_plot)
+
+    calculateMetrics(train_dataloader, val_dataloader, test_dataloader, model)
+
+# Für welche, eigentlich
+# immer genutzte und recht simple, Regularisierungsmethode sind diese Werte
+# notwendig?
+# → Early Stopping
+
+# 4. Warum? Wie nennt sich das in den obigen vier Schritten beschriebene Vorgehen?
+# → Kreuzvalidierung (2-fach)
+# → Dieser Prozess wird oft als Hyperparameter-Optimierung oder Modellfine-tuning bezeichnet.
+
+# Der Evaluierungsmodus ist insbesondere bei Dropout und Batch Normalization wichtig (Warum?).
+# → Im Evaluierungsmodus wird Dropout deaktiviert, da es keinen Sinn ergibt einzelne Neuronen zum Validieren
+#       auszuschalten.
+
+# → Während des Trainingsmodus werden die Mittelwerte und Standardabweichungen jeder Mini-Batch berechnet und
+#       verwendet, um die Normalisierung durchzuführen.
+#       Im Evaluierungsmodus möchte man jedoch eine konsistente Normalisierung basierend auf den gesamten Datensatz
+#       erhalten, nicht nur auf einer Mini-Batch. Daher werden während der Evaluierung die Mittelwerte und
+#       Standardabweichungen über den gesamten Datensatz berechnet und für die Normalisierung verwendet.
+
+# BatchNormalization und Dropout sollten nicht gleichzeitig verwendet werden !
+# Dropout zerstört die Batch-Statistik.
