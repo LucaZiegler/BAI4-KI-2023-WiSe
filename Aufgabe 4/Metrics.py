@@ -49,16 +49,17 @@ def acc_prec_rec_score(y_pred, y):
         binary_pred = convert_to_binary(y_pred[pred].item())
         if binary_pred == y[pred].item():
             acc += 1
-        if binary_pred == 1:
-            if y[pred].item() == 1:
-                true_positives += 1
-            else:
-                false_positives += 1
-        if binary_pred == 0:
-            if y[pred].item() == 0:
-                true_negatives += 1
-            else:
-                false_negatives += 1
+        match binary_pred:
+            case 1:
+                if y[pred].item() == 1:
+                    true_positives += 1
+                else:
+                    false_positives += 1
+            case 0:
+                if y[pred].item() == 0:
+                    true_negatives += 1
+                else:
+                    false_negatives += 1
 
     prec = true_positives / (true_positives + false_positives) if (true_positives + false_positives) != 0 else 0.0
     rec = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) != 0 else 0.0
