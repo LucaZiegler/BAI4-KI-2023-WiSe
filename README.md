@@ -2,7 +2,7 @@ Aufgabe 1:
 BFS, DFS
 
 Aufgabe 2:
-Frozen Lake
+Policy Iteration & Value Iteration with Frozen Lake & Taxi
 
 Aufgabe 3:
 
